@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ОФЗ</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        font-size: 14px;
+        font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono',
+          Menlo, Consolas, monospace;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 5px 5px;
+        border: 0.1px solid #eee;
+      }
+
+      th {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
+        background-color: #000;
+        border: 0.1px solid #000;
+        color: #fff;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <table>
+      <thead>
+        <tr id="table-head"></tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <script>
+      'use strict';
+
+      function sortCouponYield(a, b) {
+        if (!isFinite(b.COUPONYIELD) && !isFinite(a.COUPONYIELD)) {
+          return 0;
+        }
+        if (!isFinite(b.COUPONYIELD)) {
+          return 1;
+        }
+        if (!isFinite(a.COUPONYIELD)) {
+          return -1;
+        }
+        return b.COUPONYIELD - a.COUPONYIELD;
+      }
+
+      async function getMOEXBondsData() {
+        const url =
+          'https://iss.moex.com/iss/engines/stock/markets/bonds/boards/TQOB/securities.json?iss.json=extended&iss.meta=off&iss.only=securities,marketdata&securities.columns=ISIN,SECNAME,COUPONPERCENT,COUPONVALUE,ACCRUEDINT,COUPONPERIOD,NEXTCOUPON,MATDATE,FACEVALUE,PREVLEGALCLOSEPRICE&marketdata.columns=LAST';
+
+        // boardid: TQCB, TQOB
+
+        const response = await fetch(url);
+
+        const responseJson = await response.json();
+
+        let bonds = responseJson[1].securities;
+        const bondLastPrices = responseJson[1].marketdata;
+
+        bonds = bonds.map((e, idx) => {
+          if (
+            e.SECNAME.startsWith('ОФЗ-ИН') ||
+            e.SECNAME.startsWith('ОФЗ-АД')
+          ) {
+            return;
+          }
+          e.PRICE = bondLastPrices[idx].LAST || e.PREVLEGALCLOSEPRICE || 0;
+          e.COUPONYIELD =
+            e.PRICE === 0
+              ? 0
+              : Math.round(
+                  (365000000 * e.COUPONVALUE) /
+                    (e.COUPONPERIOD * e.FACEVALUE * e.PRICE)
+                ) / 100;
+          e.COUPONYIELDCLEAR =
+            e.PRICE === 0
+              ? 0
+              : Math.round(
+                  ((365000000 * e.COUPONVALUE) /
+                    (e.COUPONPERIOD * e.FACEVALUE * e.PRICE)) *
+                    0.87
+                ) / 100;
+
+          delete e.PREVLEGALCLOSEPRICE;
+          delete e.FACEVALUE;
+          delete e.COUPONPERCENT;
+          delete e.COUPONVALUE;
+          return e;
+        });
+
+        return bonds;
+      }
+
+      function createTable(data) {
+        let thead = document.getElementById('table-head');
+        let tbody = document.getElementById('table-body');
+
+        Object.keys(data[0]).forEach((e) => {
+          const th = document.createElement('th');
+          th.innerText = e;
+          thead.insertAdjacentElement('beforeend', th);
+        });
+
+        for (let e of data) {
+          const tr = document.createElement('tr');
+          Object.values(e).forEach((e) => {
+            const td = document.createElement('td');
+            td.innerText = e;
+            tr.insertAdjacentElement('beforeend', td);
+          });
+          tbody.insertAdjacentElement('beforeend', tr);
+        }
+      }
+
+      window.addEventListener('load', async () => {
+        let data = await getMOEXBondsData();
+        data.sort(sortCouponYield);
+        createTable(data);
+      });
+    </script>
+  </body>
+</html>
