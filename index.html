@@ -16,7 +16,7 @@
         <td>${t.NKDPERC?t.NKDPERC.toFixed(0):""}</td>
       </tr>`;e.insertAdjacentHTML("beforeend",n)})}function C(o,e){return!isFinite(e.YIELD)&&!isFinite(o.YIELD)?0:isFinite(e.YIELD)?isFinite(o.YIELD)?e.YIELD-o.YIELD:-1:1}function O(o,e){return o.NEXTCOUPON-e.NEXTCOUPON}function f(){return new Set(JSON.parse(localStorage.getItem("select")))}function L(o){console.log(o),localStorage.setItem("select",JSON.stringify([...o]))}const i=f();document.getElementById("tbody").onclick=o=>{const e=o.target.closest("tr");i.has(e.id)?(i.delete(e.id),e.classList.toggle("select")):(i.add(e.id),e.classList.add("select")),L(i)};function I(o,e){return C(o,e)||O(o,e)}(async function o(){const e=await c();e.sort(I),N(e),setTimeout(o,1e4)})();
 </script>
-    <style rel="stylesheet" crossorigin>*{padding:0;margin:0;font-family:system-ui,Arial,sans-serif}th,td{text-align:left;padding:10px}td{color:#444;border-bottom:.1px solid #eee;text-align:center}th{position:-webkit-sticky;position:sticky;top:0;color:#444;text-align:center;border-bottom:2px solid orangered}table{width:100%;border-collapse:separate;border-spacing:0;column-width:100px}.select{background-color:#ff440032}
+    <style rel="stylesheet" crossorigin>*{padding:0;margin:0;font-family:system-ui,Arial,sans-serif}th,td{text-align:left;padding:10px;background-color:#fff}td{color:#444;border-bottom:.1px solid #eee;text-align:center}th{position:-webkit-sticky;position:sticky;top:0;color:#444;text-align:center;border-bottom:2px solid orangered}table{width:100%;border-collapse:separate;border-spacing:0;column-width:100px}.select{background-color:#ff440032}
 </style>
   </head>
 
